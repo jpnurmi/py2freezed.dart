@@ -131,29 +131,32 @@ class Union2Class(ast.NodeTransformer):
             return self.generic_visit(node)
 
     def __init__(self):
-        self.unions = self.UnionScanner()
-        self.classes = {}
+        self.scanner = self.UnionScanner()
+        self.unions = {}
 
     def visit_ClassDef(self, node: ast.ClassDef):
-        for v in self.unions.named.values():
+        for k, v in self.scanner.named.items():
             if node.name in v:
-                self.classes[node.name] = node
-                return None
-        for v in self.unions.unnamed:
+                if k in self.unions:
+                    self.unions[k].classes.append(node)
+                    return None
+                union = UnionDef(name=k, classes=[node])
+                self.unions[k] = union
+                return union
+        for v in self.scanner.unnamed:
             if node.name in v:
-                self.classes[node.name] = node
-                return None
+                k = 'Or'.join(v)
+                if k in self.unions:
+                    self.unions[k].classes.append(node)
+                    return None
+                union = UnionDef(name=k, classes=[node])
+                self.unions[k] = union
+                return union
         return self.generic_visit(node)
 
     def visit_Module(self, node: ast.Module):
-        node = self.unions.visit(node)
-        node = self.generic_visit(node)
-        unions = []
-        for k, v in self.unions.named.items():
-            unions.append(UnionDef(name=k, classes=[self.classes[c] for c in v]))
-        for u in self.unions.unnamed:
-            unions.append(UnionDef(name='Or'.join(u), classes=[self.classes[c] for c in u]))
-        return ast.Module(body=[*node.body, *unions])
+        node = self.scanner.visit(node)
+        return self.generic_visit(node)
 
 class Py2FreezedClass(ast.NodeVisitor):
     def __init__(self, node: ast.ClassDef):
