@@ -91,7 +91,7 @@ class Default2Constant(ast.NodeTransformer):
             isinstance(node.func.value, ast.Name) and node.func.value.id == "attr":
                 values = [k.value for k in node.keywords if k.arg == 'default']
                 if len(values) == 1 and isinstance(values[0], ast.Constant):
-                    return values[0].value
+                    return values[0]
         return self.generic_visit(node)
 
 # Assign(
