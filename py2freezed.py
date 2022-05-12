@@ -185,6 +185,12 @@ class {self.name} with _${self.name} {{
 """
 
 def dart_name(name: str):
+    name = camel_case(name)
+    return {
+        "default": "isDefault",
+    }.get(name, name)
+
+def camel_case(name: str):
     words = name.split("_")
     return words[0][:1].lower() + words[0][1:] + "".join(word.title() for word in words[1:])
 
@@ -231,8 +237,8 @@ class Py2FreezedProperty(ast.NodeVisitor):
         property = f"{self.type} {name}"
         if self.value == None:
             property = f"required {property}"
-        if name != self.name:
-            property = f"@JsonKey(name: '{self.name}') {property}"
+        if name != camel_case(self.name):
+             property = f"@JsonKey(name: '{self.name}') {property}"
         if self.value != None and self.value != "null":
             property = f"@Default({self.value}) {property}"
         return f"{property},"
