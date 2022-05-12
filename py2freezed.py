@@ -260,17 +260,13 @@ class {self.name} with _${self.name} {{
 }}
 """
 
-class Py2FreezedEnum(ast.NodeVisitor):
+class Py2FreezedEnum:
     def __init__(self, node: EnumDef):
         self.name = node.name
-        self.values = []
-        self.visit(node)
-
-    def visit_Assign(self, node):
-        self.values.append(node.targets[0].id)
+        self.values = node.values
 
     def __str__(self):
-        values = ",\n  ".join(self.values)
+        values = ",\n  ".join([v.id for v in self.values if isinstance(v, ast.Name)])
         return f"""
 enum {self.name} {{
   {values},
