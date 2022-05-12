@@ -131,5 +131,89 @@ class TestClass with _$TestClass {
 }
 """)
 
+    def test_named_union(self):
+        py2freezed = Py2Freezed()
+        py2freezed.parse("""
+class Foo:
+    a: bool
+    b: int = 1
+
+class Bar:
+    c: Optional[str]
+
+class BazQux:
+    d: Test
+
+TestUnion = Union[Foo, Bar, BazQux]
+""")
+        self.assertEqual(py2freezed.to_freezed(), """
+@Freezed(unionKey: '\$type', unionValueCase: FreezedUnionCase.pascal)
+class TestUnion with _$TestUnion {
+
+  @FreezedUnionValue('Foo')
+  @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
+  const factory TestUnion.foo({
+    required bool a,
+    @Default(1) int b,
+  }) = Foo;
+
+  @FreezedUnionValue('Bar')
+  @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
+  const factory TestUnion.bar({
+    required String? c,
+  }) = Bar;
+
+  @FreezedUnionValue('BazQux')
+  @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
+  const factory TestUnion.bazQux({
+    required Test d,
+  }) = BazQux;
+
+  factory TestUnion.fromJson(Map<String, dynamic> json) => _$TestUnionFromJson(json);
+}
+""")
+
+    def test_unnamed_union(self):
+        py2freezed = Py2Freezed()
+        py2freezed.parse("""
+class Foo:
+    a: bool
+
+class BarBaz:
+    b: bool
+
+class TestClass:
+    foo: Union[Foo, BarBaz]
+""")
+        self.assertEqual(py2freezed.to_freezed(), """
+@Freezed(unionKey: '\$type', unionValueCase: FreezedUnionCase.pascal)
+class FooOrBarBaz with _$FooOrBarBaz {
+
+  @FreezedUnionValue('Foo')
+  @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
+  const factory FooOrBarBaz.foo({
+    required bool a,
+  }) = Foo;
+
+  @FreezedUnionValue('BarBaz')
+  @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
+  const factory FooOrBarBaz.barBaz({
+    required bool b,
+  }) = BarBaz;
+
+  factory FooOrBarBaz.fromJson(Map<String, dynamic> json) => _$FooOrBarBazFromJson(json);
+}
+
+@freezed
+class TestClass with _$TestClass {
+  @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
+  const factory TestClass({
+    required FooOrBarBaz foo,
+  }) = _TestClass;
+
+  factory TestClass.fromJson(Map<String, dynamic> json) => _$TestClassFromJson(json);
+}
+""")
+
 if __name__ == '__main__':
     unittest.main()

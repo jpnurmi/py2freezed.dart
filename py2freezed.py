@@ -250,12 +250,11 @@ class Py2FreezedUnion(ast.NodeVisitor):
 """
 
     def __str__(self):
-        classes = "\n".join(self._format(c) for c in self.classes)
+        classes = "".join(self._format(c) for c in self.classes)
         return f"""
 @Freezed(unionKey: '\\$type', unionValueCase: FreezedUnionCase.pascal)
 class {self.name} with _${self.name} {{
 {classes}
-
   factory {self.name}.fromJson(Map<String, dynamic> json) => _${self.name}FromJson(json);
 }}
 """
