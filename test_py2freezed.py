@@ -9,12 +9,19 @@ class TestEnum(enum.Enum):
     FOO = enum.auto()
     BAR = enum.auto()
     BAZ = enum.auto()
+
+class TestEnum2(enum.Enum):
+    QUX = _("qux")
 """)
         self.assertEqual(py2freezed.to_freezed(), """
 enum TestEnum {
   FOO,
   BAR,
   BAZ,
+}
+
+enum TestEnum2 {
+  QUX,
 }
 """)
 

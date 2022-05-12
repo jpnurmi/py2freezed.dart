@@ -1,4 +1,5 @@
 import ast
+import attr
 import sys
 from typing import Any, List
 from unicodedata import name
@@ -48,14 +49,16 @@ class Py2Freezed(ast.NodeVisitor):
 
 class Class2Enum(ast.NodeTransformer):
     class EnumScanner(ast.NodeVisitor):
-        values: List[ast.expr] = []
+        def __init__(self):
+            self.values = []
+
         def visit_Assign(self, node: ast.Assign):
             self.values.extend(node.targets)
 
     def visit_ClassDef(self, node: ast.ClassDef):
-        scanner = self.EnumScanner()
-        scanner.visit(node)
         if any(base.value.id == "enum" for base in node.bases):
+            scanner = self.EnumScanner()
+            scanner.visit(node)
             return EnumDef(name=node.name, values=scanner.values)
         return self.generic_visit(node)
 
