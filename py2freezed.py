@@ -208,6 +208,8 @@ def dart_type(node: ast.AST):
             value = dart_type(node.slice.elts[1])
             type = f"Map<{key}, {value}>"
     return {
+        "dict": "Map<String, dynamic>",
+        "list": "List<dynamic>",
         "str": "String",
     }.get(type, type)
 
