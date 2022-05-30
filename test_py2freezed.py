@@ -37,7 +37,6 @@ class TestClass:
         self.assertEqual(py2freezed.to_freezed(), """
 @freezed
 class TestClass with _$TestClass {
-  @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
   const factory TestClass({
     required bool boolean,
     required int integer,
@@ -61,7 +60,6 @@ class TestClass:
         self.assertEqual(py2freezed.to_freezed(), """
 @freezed
 class TestClass with _$TestClass {
-  @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
   const factory TestClass({
     required bool? boolean,
     required int? integer,
@@ -84,7 +82,6 @@ class TestClass:
         self.assertEqual(py2freezed.to_freezed(), """
 @freezed
 class TestClass with _$TestClass {
-  @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
   const factory TestClass({
     @Default(false) bool boolean,
     @Default(1) int integer,
@@ -108,7 +105,6 @@ class TestClass:
         self.assertEqual(py2freezed.to_freezed(), """
 @freezed
 class TestClass with _$TestClass {
-  @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
   const factory TestClass({
     @Default(123) int foo,
     @Default('foo') String bar,
@@ -129,7 +125,6 @@ class TestClass:
         self.assertEqual(py2freezed.to_freezed(), """
 @freezed
 class TestClass with _$TestClass {
-  @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
   const factory TestClass({
     @Default(false) bool fooBar,
   }) = _TestClass;
@@ -158,20 +153,17 @@ TestUnion = Union[Foo, Bar, BazQux]
 class TestUnion with _$TestUnion {
 
   @FreezedUnionValue('Foo')
-  @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
   const factory TestUnion.foo({
     required bool a,
     @Default(1) int b,
   }) = Foo;
 
   @FreezedUnionValue('Bar')
-  @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
   const factory TestUnion.bar({
     required String? c,
   }) = Bar;
 
   @FreezedUnionValue('BazQux')
-  @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
   const factory TestUnion.bazQux({
     required Test d,
   }) = BazQux;
@@ -197,13 +189,11 @@ class TestClass:
 class FooOrBarBaz with _$FooOrBarBaz {
 
   @FreezedUnionValue('Foo')
-  @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
   const factory FooOrBarBaz.foo({
     required bool a,
   }) = Foo;
 
   @FreezedUnionValue('BarBaz')
-  @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
   const factory FooOrBarBaz.barBaz({
     required bool b,
   }) = BarBaz;
@@ -213,7 +203,6 @@ class FooOrBarBaz with _$FooOrBarBaz {
 
 @freezed
 class TestClass with _$TestClass {
-  @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
   const factory TestClass({
     required FooOrBarBaz foo,
   }) = _TestClass;

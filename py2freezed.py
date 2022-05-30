@@ -178,7 +178,6 @@ class Py2FreezedClass(ast.NodeVisitor):
         return f"""
 @freezed
 class {self.name} with _${self.name} {{
-  @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
   const factory {self.name}({{
     {properties}
   }}) = _{self.name};
@@ -263,7 +262,6 @@ class Py2FreezedUnion(ast.NodeVisitor):
         properties = "\n    ".join(str(property) for property in cls.properties)
         return f"""
   @FreezedUnionValue('{cls.name}')
-  @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
   const factory {self.name}.{dart_name(cls.name)}({{
     {properties}
   }}) = {cls.name};
