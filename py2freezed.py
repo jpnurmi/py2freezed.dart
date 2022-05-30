@@ -1,4 +1,5 @@
 import ast
+import fileinput
 import sys
 
 class EnumDef(ast.stmt):
@@ -292,11 +293,31 @@ enum {self.name} {{
 """
 
 def main():
-    for arg in sys.argv[1:]:
-        with open(arg, "r") as f:
-            py2freezed = Py2Freezed()
-            py2freezed.parse(f.read())
-            print(py2freezed.to_freezed())
+    input = sys.argv[1] if len(sys.argv) > 1 else ""
+    output = sys.argv[2] if len(sys.argv) == 3 else None
+
+    if not input.endswith(".py") or (output != None and not output.endswith(".dart")):
+        print("usage: py2freezed <input.py> (<output.dart>)")
+        return
+
+    py2freezed = Py2Freezed()
+    with open(sys.argv[1], "r") as file:
+        py2freezed.parse(file.read())
+
+    data = py2freezed.to_freezed()
+    if output == None:
+        print(data)
+    else:
+        generated_line = False
+        for line in fileinput.input(output, inplace=True):
+            if not generated_line:
+                print(line.rstrip())
+            if line.startswith("// BEGIN GENERATED CODE"):
+                print(data)
+                generated_line = True
+            elif line.startswith("// END GENERATED CODE"):
+                print(line.rstrip())
+                generated_line = False
 
 if __name__ == "__main__":
     sys.exit(main())
