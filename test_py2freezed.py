@@ -131,7 +131,7 @@ class TestClass:
 class TestClass with _$TestClass {
   @JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
   const factory TestClass({
-    @Default(false) @JsonKey(name: 'foo_bar') bool fooBar,
+    @Default(false) bool fooBar,
   }) = _TestClass;
 
   factory TestClass.fromJson(Map<String, dynamic> json) => _$TestClassFromJson(json);
