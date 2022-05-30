@@ -44,6 +44,7 @@ class Py2Freezed(ast.NodeVisitor):
     def to_freezed(self):
         return "".join(str(node) for node in self.nodes)
 
+# translates classes inherited from "Enum" to enum defs
 class Class2Enum(ast.NodeTransformer):
     class EnumScanner(ast.NodeVisitor):
         def __init__(self):
@@ -59,33 +60,36 @@ class Class2Enum(ast.NodeTransformer):
             return EnumDef(name=node.name, values=scanner.values)
         return self.generic_visit(node)
 
-# Call(
-#   func=Attribute(
-#     value=Name(id='attr', ctx=Load()),
-#     attr='Factory',
-#     ctx=Load()
-#   ),
-#   args=[Name(id='list', ctx=Load())],
-#   keywords=[]
-# )
+# translates "attr.factory(list)" to "[]" for easier processing
 class Factory2Constant(ast.NodeTransformer):
+    # Call(
+    #   func=Attribute(
+    #     value=Name(id='attr', ctx=Load()),
+    #     attr='Factory',
+    #     ctx=Load()
+    #   ),
+    #   args=[Name(id='list', ctx=Load())],
+    #   keywords=[]
+    # )
     def visit_Call(self, node: ast.Call):
         if isinstance(node.func, ast.Attribute) and node.func.attr == "Factory" and \
             isinstance(node.func.value, ast.Name) and node.func.value.id == "attr" and \
-            isinstance(node.args[0], ast.Name) and node.args[0].id == "list":
-            return ast.Constant(value=[])
+            isinstance(node.args[0], ast.Name):
+                if node.args[0].id == "list":
+                    return ast.Constant(value=[])
         return self.generic_visit(node)
 
-# Call(
-#   func=Attribute(
-#     value=Name(id='attr', ctx=Load()),
-#     attr='ib',
-#     ctx=Load()
-#   ),
-#   args=[],
-#   keywords=[keyword(arg='default', value=Constant(value=False))]
-# )
+# translates "attr.ib(default=foo)" to "foo" for easier processing
 class Default2Constant(ast.NodeTransformer):
+    # Call(
+    #   func=Attribute(
+    #     value=Name(id='attr', ctx=Load()),
+    #     attr='ib',
+    #     ctx=Load()
+    #   ),
+    #   args=[],
+    #   keywords=[keyword(arg='default', value=Constant(value=False))]
+    # )
     def visit_Call(self, node: ast.Call):
         if isinstance(node.func, ast.Attribute) and node.func.attr == "ib" and \
             isinstance(node.func.value, ast.Name) and node.func.value.id == "attr":
@@ -94,26 +98,27 @@ class Default2Constant(ast.NodeTransformer):
                     return values[0]
         return self.generic_visit(node)
 
-# Assign(
-#   targets=[Name(id='AnyStep', ctx=Store())],
-#   value=Subscript(
-#     value=Name(id='Union', ctx=Load()),
-#     slice=Tuple(elts=[
-#         Name(id='StepPressKey', ctx=Load()),
-#         Name(id='StepKeyPresent', ctx=Load()),
-#         Name(id='StepResult', ctx=Load())
-#       ],
-#       ctx=Load()
-#     ),
-#     ctx=Load()
-#   )
-# )
+# translates "Union[A, B]" to union class defs
 class Union2Class(ast.NodeTransformer):
     class UnionScanner(ast.NodeTransformer):
         def __init__(self):
             self.named = {}
             self.unnamed = []
 
+        # Assign(
+        #   targets=[Name(id='AnyStep', ctx=Store())],
+        #   value=Subscript(
+        #     value=Name(id='Union', ctx=Load()),
+        #     slice=Tuple(elts=[
+        #         Name(id='StepPressKey', ctx=Load()),
+        #         Name(id='StepKeyPresent', ctx=Load()),
+        #         Name(id='StepResult', ctx=Load())
+        #       ],
+        #       ctx=Load()
+        #     ),
+        #     ctx=Load()
+        #   )
+        # )
         def visit_Assign(self, node: ast.Assign):
             if len(node.targets) == 1 and isinstance(node.targets[0], ast.Name) and \
                 isinstance(node.value, ast.Subscript) and \
@@ -158,6 +163,7 @@ class Union2Class(ast.NodeTransformer):
         node = self.scanner.visit(node)
         return self.generic_visit(node)
 
+# translates a Python class to a Freezed Dart class
 class Py2FreezedClass(ast.NodeVisitor):
     def __init__(self, node: ast.ClassDef):
         self.name = node.name
@@ -181,16 +187,19 @@ class {self.name} with _${self.name} {{
 }}
 """
 
+# returns a Dart-compatible identifier name
 def dart_name(name: str):
     name = camel_case(name)
     return {
         "default": "isDefault",
     }.get(name, name)
 
+# converts snake_case to camelCase
 def camel_case(name: str):
     words = name.split("_")
     return words[0][:1].lower() + words[0][1:] + "".join(word.title() for word in words[1:])
 
+# returns the respective Dart type name for a Python type
 def dart_type(node: ast.AST):
     type = ""
     if (isinstance(node, ast.Name)):
@@ -210,6 +219,7 @@ def dart_type(node: ast.AST):
         "str": "String",
     }.get(type, type)
 
+# returns the respective Dart value for a Python value
 def dart_value(node: ast.AST):
     if not isinstance(node, ast.Constant):
         return None
@@ -221,6 +231,7 @@ def dart_value(node: ast.AST):
         return "null"
     return str(node.value)
 
+# translates a Python property to a Freezed property
 class Py2FreezedProperty(ast.NodeVisitor):
     def __init__(self, node: ast.AnnAssign):
         self.name = node.target.id
@@ -242,6 +253,7 @@ class Py2FreezedProperty(ast.NodeVisitor):
             property = f"@Default({self.value}) {property}"
         return f"{property},"
 
+# translates a Python union to a Freezed union
 class Py2FreezedUnion(ast.NodeVisitor):
     def __init__(self, node: UnionDef):
         self.name = node.name
@@ -267,6 +279,7 @@ class {self.name} with _${self.name} {{
 }}
 """
 
+# translates a Python enum to a Dart enum
 class Py2FreezedEnum:
     def __init__(self, node: EnumDef):
         self.name = node.name
