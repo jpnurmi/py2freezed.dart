@@ -1,18 +1,15 @@
 import ast
-import attr
 import sys
-from typing import Any, List
-from unicodedata import name
 
 class EnumDef(ast.stmt):
     name: str
-    values: List[ast.expr]
+    values: list[ast.expr]
 
 class UnionDef(ast.stmt):
     if sys.version_info >= (3, 10):
         __match_args__ = ("name", "classes")
     name: str
-    classes: List[ast.ClassDef]
+    classes: list[ast.ClassDef]
 
 class Py2Freezed(ast.NodeVisitor):
     def __init__(self):
