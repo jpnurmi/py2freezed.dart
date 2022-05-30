@@ -211,5 +211,22 @@ class TestClass with _$TestClass {
 }
 """)
 
+    def test_datetime(self):
+        py2freezed = Py2Freezed()
+        py2freezed.parse("""
+class TestClass:
+    foo_bar: datetime.datetime = attr.ib(metadata={'time_fmt': '%Y-%m-%dT%H:%M:%S.%fZ'})
+""")
+        self.assertEqual(py2freezed.to_freezed(), """
+@freezed
+class TestClass with _$TestClass {
+  const factory TestClass({
+    required DateTime fooBar,
+  }) = _TestClass;
+
+  factory TestClass.fromJson(Map<String, dynamic> json) => _$TestClassFromJson(json);
+}
+""")
+
 if __name__ == '__main__':
     unittest.main()

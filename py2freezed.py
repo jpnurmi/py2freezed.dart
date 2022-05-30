@@ -202,6 +202,8 @@ def camel_case(name: str):
 # returns the respective Dart type name for a Python type
 def dart_type(node: ast.AST):
     type = ""
+    if (isinstance(node, ast.Attribute)):
+        node = node.value
     if (isinstance(node, ast.Name)):
         type = node.id
     elif (isinstance(node, ast.Subscript)):
@@ -214,6 +216,7 @@ def dart_type(node: ast.AST):
             value = dart_type(node.slice.elts[1])
             type = f"Map<{key}, {value}>"
     return {
+        "datetime": "DateTime",
         "dict": "Map<String, dynamic>",
         "list": "List<dynamic>",
         "str": "String",
